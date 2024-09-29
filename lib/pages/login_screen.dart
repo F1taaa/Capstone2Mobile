@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'register_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -13,16 +15,56 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _isLoading = false;
 
   Future<void> _login() async {
     setState(() {
-      _errorMessage = "This is a UI-only version, no backend functionality.";
+      _errorMessage = '';
+      _isLoading = true;
     });
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const SafeSyncDashboard()),
-    );
+    final loginData = {
+      'officerId': _usernameController.text,
+      'password': _passwordController.text,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://st3y.helioho.st/login.php'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(loginData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        if (responseData['error'] != null) {
+          setState(() {
+            _errorMessage = responseData['error'];
+          });
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SafeSyncDashboard()),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage =
+              "Failed to login. Status code: ${response.statusCode}";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Exception: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -64,7 +106,7 @@ class LoginScreenState extends State<LoginScreen> {
                     child: TextFormField(
                       controller: _usernameController,
                       decoration: InputDecoration(
-                        hintText: 'Username',
+                        hintText: 'Officer ID',
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -112,20 +154,26 @@ class LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15.0),
                     child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: _isLoading ? null : _login,
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all<Color>(
                             const Color(0xFF0ABF74)),
                         foregroundColor:
                             WidgetStateProperty.all<Color>(Colors.white),
                       ),
-                      child: const SizedBox(
-                        height: 40,
-                        width: 180,
-                        child: Center(
-                          child: Text('Sign In'),
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 40,
+                              width: 180,
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : const SizedBox(
+                              height: 40,
+                              width: 180,
+                              child: Center(
+                                child: Text('Sign In'),
+                              ),
+                            ),
                     ),
                   ),
                   Padding(

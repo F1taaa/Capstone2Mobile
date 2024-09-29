@@ -74,9 +74,6 @@ flutter:
     - assets/images/background - design2.png
     - assets/images/background - design3.png
     - assets/images/background - design4.png
-    - assets/images/logo - department1.png
-    - assets/images/logo - department2.png
-    - assets/images/logo - department3.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

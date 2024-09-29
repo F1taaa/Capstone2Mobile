@@ -156,7 +156,7 @@ class SafeSyncBody extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: _buildOfficerButton(context), // Pass context here
+            child: _buildOfficerButton(context),
           ),
         ],
       ),
@@ -168,7 +168,6 @@ class SafeSyncBody extends StatelessWidget {
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: GestureDetector(
-        // No splash effect
         onTap: () {
           Navigator.push(
             context,
@@ -197,7 +196,7 @@ class SafeSyncBody extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 4),
-                    Text("Badge Number: 123456"),
+                    Text("Officer: 123456"),
                     Text("Contact: (123) 456-7890"),
                   ],
                 ),
