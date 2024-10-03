@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'incident_details.dart';
 
 class IncidentsPage extends StatefulWidget {
@@ -29,10 +30,9 @@ class _IncidentsPageState extends State<IncidentsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Incidents"),
-        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
           tabs: _incidentTypes.map((type) => Tab(text: type)).toList(),
         ),
       ),
@@ -43,9 +43,12 @@ class _IncidentsPageState extends State<IncidentsPage>
           children: [
             _buildSearchBar(context),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "Incident List",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: GoogleFonts.roboto(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -132,7 +135,6 @@ class _IncidentsPageState extends State<IncidentsPage>
       },
     ];
 
-    // Filter incidents based on selected tab
     List<Map<String, dynamic>> filteredIncidents = incidents.where((incident) {
       return type == "All" || incident["severity"] == type;
     }).toList();
@@ -142,10 +144,10 @@ class _IncidentsPageState extends State<IncidentsPage>
       itemBuilder: (context, index) {
         final incident = filteredIncidents[index];
         return Material(
-          color: Colors.transparent, // Make the material transparent
+          color: Colors.transparent,
           child: InkWell(
-            splashColor: Colors.transparent, // Disable splash color
-            highlightColor: Colors.transparent, // Disable highlight color
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
             onTap: () {
               _showIncidentDetails(context, incident);
             },
@@ -158,10 +160,15 @@ class _IncidentsPageState extends State<IncidentsPage>
               child: ListTile(
                 title: Text(
                   incident["type"] as String? ?? "Unknown",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
-                subtitle: Text(incident["location"] as String? ?? "Unknown"),
+                subtitle: Text(
+                  incident["location"] as String? ?? "Unknown",
+                  style: GoogleFonts.roboto(),
+                ),
                 trailing: Text(
                   "Status: ${incident["status"] as String? ?? "Unknown"}",
                   style: TextStyle(

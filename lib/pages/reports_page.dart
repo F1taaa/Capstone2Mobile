@@ -1,9 +1,8 @@
-// ignore_for_file: library_private_types_in_public_api
-
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({Key? key}) : super(key: key);
@@ -18,10 +17,14 @@ class _ReportsPageState extends State<ReportsPage> {
   String? _selectedSeverity;
   XFile? _imageFile;
   bool _isUploading = false;
-  bool _policeDept = false;
-  bool _fireDept = false;
-  bool _emergencyUnit = false;
-  bool _barangay = false;
+
+  final List<String> _departments = [
+    'Police Department',
+    'Fire Department',
+    'Emergency Unit',
+    'Barangay'
+  ];
+  List<String> _selectedDepartments = [];
 
   final List<String> _emergencyTypes = [
     'Fire Outbreak',
@@ -39,26 +42,32 @@ class _ReportsPageState extends State<ReportsPage> {
   Future<void> _takePhoto() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (!mounted) return; // Check if the widget is still mounted
+    if (!mounted) return;
     setState(() {
       _imageFile = image;
     });
   }
 
-  bool _validateDepartments() {
-    return _policeDept || _fireDept || _emergencyUnit || _barangay;
-  }
-
   Future<void> _submitReport() async {
     if (_formKey.currentState?.validate() ?? false) {
+      if (_isUploading) return;
+
       setState(() {
         _isUploading = true;
       });
+
       await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
+
+      // Clear all fields after submission
       setState(() {
         _isUploading = false;
+        _selectedEmergency = null;
+        _selectedSeverity = null;
+        _imageFile = null;
+        _selectedDepartments.clear();
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Report submitted successfully!'),
@@ -76,28 +85,34 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Report Incident"),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+      appBar: AppBar(),
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildIncidentLocation(),
-                const SizedBox(height: 20),
-                _buildTypeAndSeverityDropdowns(),
-                const SizedBox(height: 20),
-                _buildDepartmentsCheckbox(),
-                const SizedBox(height: 20),
-                _buildUploadEvidenceButton(),
-                const SizedBox(height: 20),
-                _buildSubmitButton(),
-                if (_isUploading) const LinearProgressIndicator(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildIncidentLocation(),
+                        const SizedBox(height: 20),
+                        _buildTypeAndSeverityDropdowns(),
+                        const SizedBox(height: 20),
+                        _buildDepartmentsDropdown(),
+                        const SizedBox(height: 20),
+                        _buildUploadEvidenceButton(),
+                        const SizedBox(height: 20),
+                        Center(child: _buildSubmitButton()),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -114,7 +129,7 @@ class _ReportsPageState extends State<ReportsPage> {
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(2, 2)),
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
         ],
       ),
       child: const Center(
@@ -122,8 +137,8 @@ class _ReportsPageState extends State<ReportsPage> {
           'Incident Location',
           style: TextStyle(
             color: Colors.black54,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -144,148 +159,120 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildIncidentTypeDropdown() {
-    return DropdownButtonFormField<String>(
+    return _buildDropdown<String>(
       value: _selectedEmergency,
       onChanged: (newValue) {
         setState(() {
           _selectedEmergency = newValue;
         });
       },
-      items: _emergencyTypes.map((emergency) {
-        return DropdownMenuItem(
-          value: emergency,
-          child: Row(
-            children: [
-              const Icon(Icons.warning, color: Colors.blue),
-              const SizedBox(width: 8),
-              Text(emergency),
-            ],
-          ),
-        );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: 'Select Type',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-      ),
-      validator: (value) {
-        if (value == null) {
-          return 'Please select an emergency type.';
-        }
-        return null;
-      },
+      items: _emergencyTypes,
+      label: 'Select Type',
+      icon: Icons.warning,
     );
   }
 
   Widget _buildSeverityDropdown() {
-    return DropdownButtonFormField<String>(
+    return _buildDropdown<String>(
       value: _selectedSeverity,
       onChanged: (newValue) {
         setState(() {
           _selectedSeverity = newValue;
         });
       },
-      items: _severityLevels.map((severity) {
-        return DropdownMenuItem(
-          value: severity,
+      items: _severityLevels,
+      label: 'Select Severity',
+      icon: Icons.priority_high,
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required T? value,
+    required ValueChanged<T?>? onChanged,
+    required List<String> items,
+    required String label,
+    required IconData icon,
+  }) {
+    return DropdownButtonFormField<T>(
+      value: value,
+      onChanged: onChanged,
+      items: items.map((item) {
+        return DropdownMenuItem<T>(
+          value: item as T,
           child: Row(
             children: [
-              const Icon(Icons.priority_high, color: Colors.red),
+              Icon(icon, color: Colors.blue),
               const SizedBox(width: 8),
-              Text(severity),
+              Text(item, style: const TextStyle(fontSize: 16)),
             ],
           ),
         );
       }).toList(),
       decoration: InputDecoration(
-        labelText: 'Select Severity',
+        labelText: label,
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
       ),
       validator: (value) {
         if (value == null) {
-          return 'Please select a severity level.';
+          return 'Please select a $label.';
         }
         return null;
       },
     );
   }
 
-  Widget _buildDepartmentsCheckbox() {
+  Widget _buildDepartmentsDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Select Departments Needed',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: CheckboxListTile(
-                title: const Text("Police Department"),
-                value: _policeDept,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _policeDept = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
+        MultiSelectDialogField(
+          items: _departments
+              .map((department) => MultiSelectItem(department, department))
+              .toList(),
+          title: const Text("Departments"),
+          selectedColor: Colors.blueAccent,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: Colors.grey,
+              width: 2,
             ),
-            Expanded(
-              child: CheckboxListTile(
-                title: const Text("Fire Department"),
-                value: _fireDept,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _fireDept = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
+          ),
+          buttonIcon: const Icon(
+            Icons.arrow_drop_down,
+            color: Colors.blueAccent,
+          ),
+          buttonText: const Text(
+            "Select Departments",
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 16,
             ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: CheckboxListTile(
-                title: const Text("Emergency Unit"),
-                value: _emergencyUnit,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _emergencyUnit = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-            ),
-            Expanded(
-              child: CheckboxListTile(
-                title: const Text("Barangay"),
-                value: _barangay,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _barangay = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-            ),
-          ],
+          ),
+          onConfirm: (values) {
+            setState(() {
+              _selectedDepartments = values.map((value) => value).toList();
+            });
+          },
+          itemsTextStyle: const TextStyle(fontSize: 16),
+          confirmText: const Text('Confirm',
+              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+          cancelText: const Text('Cancel',
+              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
         ),
         const SizedBox(height: 10),
-        if (!_validateDepartments())
+        if (_selectedDepartments.isEmpty)
           const Text(
             'Please select at least one department.',
             style: TextStyle(color: Colors.red),
@@ -296,54 +283,63 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildUploadEvidenceButton() {
     return GestureDetector(
-      onTap: _takePhoto,
-      child: Container(
+      onTap: _imageFile == null
+          ? _takePhoto
+          : null, // Disable tap if there's an image
+      behavior: HitTestBehavior.translucent, // Prevent the blue flash effect
+      child: SizedBox(
         height: 100,
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-                color: Colors.black12, blurRadius: 4, offset: Offset(2, 2)),
-          ],
-        ),
-        child: _imageFile != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(_imageFile!.path),
-                  fit: BoxFit.cover,
-                ),
-              )
-            : const Center(
-                child: Text(
-                  'Upload Evidence',
-                  style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: 16,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
+            ],
+          ),
+          child: Center(
+            child: _imageFile == null
+                ? const Text(
+                    'Upload Evidence (Tap to Take Photo)',
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Evidence Uploaded',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _imageFile!.name,
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                    ],
                   ),
-                ),
-              ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildSubmitButton() {
     return SizedBox(
+      height: 50,
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _submitReport,
+        onPressed: _isUploading ? null : _submitReport,
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
-          backgroundColor: Colors.blueAccent,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          textStyle: const TextStyle(fontSize: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         ),
-        child: const Text('Report New Incident'),
+        child: _isUploading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text('Submit Report'),
       ),
     );
   }

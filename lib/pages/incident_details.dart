@@ -8,7 +8,7 @@ class IncidentDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      contentPadding: EdgeInsets.zero, // Remove default padding
+      contentPadding: EdgeInsets.zero,
       content: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -19,7 +19,7 @@ class IncidentDetails extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: Colors.grey[300], // Placeholder image
+                    backgroundColor: Colors.grey[300],
                   ),
                   const SizedBox(width: 10),
                   Column(
@@ -42,7 +42,6 @@ class IncidentDetails extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Incident Type and Location
               Text(
                 incident["type"] as String? ?? "Incident",
                 style: const TextStyle(

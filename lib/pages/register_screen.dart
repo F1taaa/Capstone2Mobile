@@ -98,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       fillColor: Colors.grey[100],
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
     );
   }

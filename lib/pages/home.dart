@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:safesync/pages/account_page.dart';
 import 'package:safesync/pages/reports_page.dart';
 import 'package:safesync/pages/incidents_page.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const SafeSyncDashboard());
@@ -39,9 +41,40 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
           children: [
             _buildPageView(),
             if (_selectedIndex == 0) _buildAppBar(),
-            _buildBottomNavigationBar(),
           ],
         ),
+        bottomNavigationBar: _buildGoogleNavBar(),
+      ),
+    );
+  }
+
+  Widget _buildGoogleNavBar() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+      child: GNav(
+        backgroundColor: Colors.white,
+        color: Colors.grey,
+        activeColor: Colors.blueAccent,
+        tabBackgroundColor: Colors.blueAccent.withOpacity(0.1),
+        gap: 8,
+        padding: const EdgeInsets.all(16),
+        tabs: const [
+          GButton(
+            icon: CupertinoIcons.home,
+            text: 'Dashboard',
+          ),
+          GButton(
+            icon: CupertinoIcons.doc_append,
+            text: 'Report',
+          ),
+          GButton(
+            icon: CupertinoIcons.list_dash,
+            text: 'Incidents',
+          ),
+        ],
+        selectedIndex: _selectedIndex,
+        onTabChange: _onItemTapped,
       ),
     );
   }
@@ -51,7 +84,6 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
       top: _selectedIndex == 0 ? kAppBarHeight : 0,
       bottom: kBottomNavBarHeight,
       child: PageView(
-        physics: const NeverScrollableScrollPhysics(),
         controller: _pageController,
         onPageChanged: (index) {
           setState(() {
@@ -74,9 +106,9 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
       right: 0,
       height: kAppBarHeight,
       child: AppBar(
-        title: const Text(
+        title: Text(
           "SafeSync",
-          style: TextStyle(
+          style: GoogleFonts.roboto(
             fontSize: 35,
             fontWeight: FontWeight.bold,
             color: Colors.blueAccent,
@@ -85,34 +117,13 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.notifications,
+              CupertinoIcons.bell,
               size: 30,
               color: Colors.blueAccent,
             ),
             onPressed: () {},
           ),
         ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: kBottomNavBarHeight,
-      child: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
-          BottomNavigationBarItem(icon: Icon(Icons.report), label: "Report"),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Incidents"),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        showUnselectedLabels: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -128,7 +139,7 @@ class SafeSyncBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(5),
       children: [
-        _buildDashboardButtonRow(context), // Pass context here
+        _buildDashboardButtonRow(context),
         const SizedBox(height: 20.0),
         _buildSectionTitle("Recent Activity"),
         const SizedBox(height: 12.0),
@@ -145,7 +156,10 @@ class SafeSyncBody extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -229,9 +243,12 @@ class SafeSyncBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(title,
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                )),
             const SizedBox(height: 8),
-            Text(description),
+            Text(description, style: GoogleFonts.roboto()),
           ],
         ),
       ),
@@ -248,14 +265,17 @@ class SafeSyncBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(incident, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(incident,
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                )),
             const SizedBox(height: 4),
-            Text(location),
+            Text(location, style: GoogleFonts.roboto()),
             const SizedBox(height: 4),
             Align(
               alignment: Alignment.centerRight,
               child: Text("Status: $status",
-                  style: const TextStyle(color: Colors.grey)),
+                  style: GoogleFonts.roboto(color: Colors.grey)),
             ),
           ],
         ),
@@ -264,6 +284,5 @@ class SafeSyncBody extends StatelessWidget {
   }
 }
 
-// Constants
-const double kAppBarHeight = 80.0;
+const double kAppBarHeight = 50.0;
 const double kBottomNavBarHeight = 60.0;

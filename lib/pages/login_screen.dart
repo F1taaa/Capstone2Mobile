@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
-import 'register_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -137,21 +136,6 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15.0),
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _login,
@@ -174,31 +158,6 @@ class LoginScreenState extends State<LoginScreen> {
                                 child: Text('Sign In'),
                               ),
                             ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const RegisterScreen()),
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            WidgetStateProperty.all<Color>(Colors.white),
-                        foregroundColor: WidgetStateProperty.all<Color>(
-                            const Color(0xFF0ABF74)),
-                      ),
-                      child: const SizedBox(
-                        height: 40,
-                        width: 180,
-                        child: Center(
-                          child: Text('Create Account'),
-                        ),
-                      ),
                     ),
                   ),
                 ],
