@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   LoginScreenState createState() => LoginScreenState();
@@ -13,57 +11,23 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _errorMessage = '';
   bool _isLoading = false;
 
-  Future<void> _login() async {
+  void _login() {
     setState(() {
-      _errorMessage = '';
       _isLoading = true;
     });
 
-    final loginData = {
-      'officerId': _usernameController.text,
-      'password': _passwordController.text,
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://st3y.helioho.st/login.php'),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(loginData),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-
-        if (responseData['error'] != null) {
-          setState(() {
-            _errorMessage = responseData['error'];
-          });
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const SafeSyncDashboard()),
-          );
-        }
-      } else {
-        setState(() {
-          _errorMessage =
-              "Failed to login. Status code: ${response.statusCode}";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Exception: $e";
-      });
-    } finally {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _isLoading = false;
       });
-    }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SafeSyncDashboard()),
+      );
+    });
   }
 
   @override
@@ -86,20 +50,14 @@ class LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/images/logo - loginpage.png',
-                    fit: BoxFit.cover,
-                    width: 240,
-                    height: 240,
-                  ),
-                  if (_errorMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        _errorMessage,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                  SizedBox(
+                    width: 250,
+                    height: 250,
+                    child: Image.asset(
+                      'assets/images/logo-safesyncwnamelndscp.png',
+                      fit: BoxFit.contain,
                     ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: TextFormField(
@@ -141,7 +99,7 @@ class LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading ? null : _login,
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all<Color>(
-                            const Color(0xFF0ABF74)),
+                            const Color(0xFF3115F6)), // Changed color
                         foregroundColor:
                             WidgetStateProperty.all<Color>(Colors.white),
                       ),

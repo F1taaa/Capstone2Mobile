@@ -37,11 +37,42 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: Stack(
-          children: [
-            _buildPageView(),
-            if (_selectedIndex == 0) _buildAppBar(),
+        appBar: AppBar(
+          title: Text(
+            "SafeSync",
+            style: GoogleFonts.roboto(
+              fontSize: MediaQuery.of(context).size.width * 0.1,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(
+                CupertinoIcons.bell,
+                size: 30,
+                color: Colors.blueAccent,
+              ),
+              onPressed: () {},
+            ),
           ],
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            children: const [
+              SafeSyncBody(),
+              ReportsPage(),
+              IncidentsPage(),
+            ],
+          ),
         ),
         bottomNavigationBar: _buildGoogleNavBar(),
       ),
@@ -51,7 +82,10 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
   Widget _buildGoogleNavBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.05,
+        vertical: 10.0,
+      ),
       child: GNav(
         backgroundColor: Colors.white,
         color: Colors.grey,
@@ -75,57 +109,6 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
         ],
         selectedIndex: _selectedIndex,
         onTabChange: _onItemTapped,
-      ),
-    );
-  }
-
-  Widget _buildPageView() {
-    return Positioned.fill(
-      top: _selectedIndex == 0 ? kAppBarHeight : 0,
-      bottom: kBottomNavBarHeight,
-      child: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        children: const [
-          SafeSyncBody(),
-          ReportsPage(),
-          IncidentsPage(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      height: kAppBarHeight,
-      child: AppBar(
-        title: Text(
-          "SafeSync",
-          style: GoogleFonts.roboto(
-            fontSize: 35,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              CupertinoIcons.bell,
-              size: 30,
-              color: Colors.blueAccent,
-            ),
-            onPressed: () {},
-          ),
-        ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
     );
   }
@@ -283,6 +266,3 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 }
-
-const double kAppBarHeight = 50.0;
-const double kBottomNavBarHeight = 60.0;

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -53,6 +53,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         body: jsonEncode(registrationData),
       );
 
+      if (!mounted) return; // Check if the widget is still mounted
+
       setState(() {
         _isLoading = false;
       });
@@ -80,6 +82,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return; // Check if the widget is still mounted
+
       setState(() {
         _isLoading = false;
       });

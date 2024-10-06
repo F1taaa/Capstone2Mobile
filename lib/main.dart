@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safesync/pages/account_page.dart';
 import 'package:safesync/pages/splashscreen.dart';
 
 void main() {
@@ -11,7 +10,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +22,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.indigo,
       ),
       home: const SplashScreen(),
-      routes: {
-        '/account': (context) => const AccountDashboard(),
-      },
     );
   }
 }

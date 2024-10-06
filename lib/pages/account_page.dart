@@ -5,7 +5,7 @@ import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 
 class AccountDashboard extends StatefulWidget {
-  const AccountDashboard({Key? key}) : super(key: key);
+  const AccountDashboard({super.key});
 
   @override
   AccountDashboardState createState() => AccountDashboardState();

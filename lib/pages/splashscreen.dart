@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:safesync/pages/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,10 +30,10 @@ class SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            SvgPicture.asset(
-              'assets/images/logo - splash.svg',
-              width: 230,
-              height: 230,
+            Image.asset(
+              'assets/images/logo-safesyncwname.png',
+              width: 250,
+              height: 250,
             ),
           ],
         ),

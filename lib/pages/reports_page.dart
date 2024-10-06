@@ -2,19 +2,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({Key? key}) : super(key: key);
+  const ReportsPage({super.key});
 
   @override
-  _ReportsPageState createState() => _ReportsPageState();
+  ReportsPageState createState() => ReportsPageState();
 }
 
-class _ReportsPageState extends State<ReportsPage> {
+class ReportsPageState extends State<ReportsPage> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedEmergency;
   String? _selectedSeverity;
+  String? _selectedDepartment;
   XFile? _imageFile;
   bool _isUploading = false;
 
@@ -24,7 +24,6 @@ class _ReportsPageState extends State<ReportsPage> {
     'Emergency Unit',
     'Barangay'
   ];
-  List<String> _selectedDepartments = [];
 
   final List<String> _emergencyTypes = [
     'Fire Outbreak',
@@ -59,13 +58,12 @@ class _ReportsPageState extends State<ReportsPage> {
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return;
 
-      // Clear all fields after submission
       setState(() {
         _isUploading = false;
         _selectedEmergency = null;
         _selectedSeverity = null;
         _imageFile = null;
-        _selectedDepartments.clear();
+        _selectedDepartment = null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,36 +83,41 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text(
+          'Report Incident',
+          style: GoogleFonts.poppins(),
+        ),
+      ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildIncidentLocation(),
-                        const SizedBox(height: 20),
-                        _buildTypeAndSeverityDropdowns(),
-                        const SizedBox(height: 20),
-                        _buildDepartmentsDropdown(),
-                        const SizedBox(height: 20),
-                        _buildUploadEvidenceButton(),
-                        const SizedBox(height: 20),
-                        Center(child: _buildSubmitButton()),
-                      ],
-                    ),
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildIncidentLocation(),
+                      const SizedBox(height: 20),
+                      _buildTypeAndSeverityDropdowns(),
+                      const SizedBox(height: 20),
+                      _buildDepartmentDropdown(),
+                      const SizedBox(height: 20),
+                      _buildUploadEvidenceButton(),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              Center(
+                child: _buildSubmitButton(),
+              ),
+            ],
           ),
         ),
       ),
@@ -201,7 +204,8 @@ class _ReportsPageState extends State<ReportsPage> {
           value: item as T,
           child: Row(
             children: [
-              Icon(icon, color: Colors.blue),
+              Icon(icon,
+                  color: const Color(0xFF3115F6)), // Consistent icon color
               const SizedBox(width: 8),
               Text(item, style: const TextStyle(fontSize: 16)),
             ],
@@ -226,67 +230,24 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _buildDepartmentsDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Departments Needed',
-          style: GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 10),
-        MultiSelectDialogField(
-          items: _departments
-              .map((department) => MultiSelectItem(department, department))
-              .toList(),
-          title: const Text("Departments"),
-          selectedColor: Colors.blueAccent,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Colors.grey,
-              width: 2,
-            ),
-          ),
-          buttonIcon: const Icon(
-            Icons.arrow_drop_down,
-            color: Colors.blueAccent,
-          ),
-          buttonText: const Text(
-            "Select Departments",
-            style: TextStyle(
-              color: Colors.black54,
-              fontSize: 16,
-            ),
-          ),
-          onConfirm: (values) {
-            setState(() {
-              _selectedDepartments = values.map((value) => value).toList();
-            });
-          },
-          itemsTextStyle: const TextStyle(fontSize: 16),
-          confirmText: const Text('Confirm',
-              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-          cancelText: const Text('Cancel',
-              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-        ),
-        const SizedBox(height: 10),
-        if (_selectedDepartments.isEmpty)
-          const Text(
-            'Please select at least one department.',
-            style: TextStyle(color: Colors.red),
-          ),
-      ],
+  Widget _buildDepartmentDropdown() {
+    return _buildDropdown<String>(
+      value: _selectedDepartment,
+      onChanged: (newValue) {
+        setState(() {
+          _selectedDepartment = newValue;
+        });
+      },
+      items: _departments,
+      label: 'Select Department',
+      icon: Icons.business,
     );
   }
 
   Widget _buildUploadEvidenceButton() {
     return GestureDetector(
-      onTap: _imageFile == null
-          ? _takePhoto
-          : null, // Disable tap if there's an image
-      behavior: HitTestBehavior.translucent, // Prevent the blue flash effect
+      onTap: _imageFile == null ? _takePhoto : null,
+      behavior: HitTestBehavior.translucent,
       child: SizedBox(
         height: 100,
         width: double.infinity,
@@ -316,7 +277,8 @@ class _ReportsPageState extends State<ReportsPage> {
                       const SizedBox(height: 10),
                       Text(
                         _imageFile!.name,
-                        style: const TextStyle(color: Colors.blue),
+                        style: const TextStyle(
+                            color: Color(0xFF3115F6)), // Consistent text color
                       ),
                     ],
                   ),
@@ -327,20 +289,23 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      height: 50,
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isUploading ? null : _submitReport,
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: Colors.blue,
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        ),
-        child: _isUploading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Submit Report'),
+    return ElevatedButton(
+      onPressed: _submitReport,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blueAccent, // Button background color
+        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
       ),
+      child: _isUploading
+          ? const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            )
+          : Text(
+              'Submit Report',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                color: Colors.white, // Change this to your desired text color
+              ),
+            ),
     );
   }
 }

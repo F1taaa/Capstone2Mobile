@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
-  _EditProfileScreenState createState() => _EditProfileScreenState();
+  EditProfileScreenState createState() => EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -139,7 +139,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: const Text(
                             'Save',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors
+                                  .white, // Change the text color to white
+                            ),
                           ),
                         ),
                 ],
