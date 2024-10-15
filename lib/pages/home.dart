@@ -37,28 +37,7 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "SafeSync",
-            style: GoogleFonts.roboto(
-              fontSize: MediaQuery.of(context).size.width * 0.1,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                CupertinoIcons.bell,
-                size: 30,
-                color: Colors.blueAccent,
-              ),
-              onPressed: () {},
-            ),
-          ],
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
+        appBar: _buildAppBar(context),
         body: SafeArea(
           child: PageView(
             controller: _pageController,
@@ -79,20 +58,47 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
     );
   }
 
+  // Method to build the AppBar
+  AppBar? _buildAppBar(BuildContext context) {
+    return _selectedIndex == 0
+        ? AppBar(
+            title: Text(
+              "SafeSync",
+              style: GoogleFonts.poppins(
+                fontSize: MediaQuery.of(context).size.width * 0.1,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  CupertinoIcons.bell,
+                  size: 30,
+                  color: Colors.blueAccent,
+                ),
+                onPressed: () {},
+              ),
+            ],
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          )
+        : null;
+  }
+
+  // Method to build the Google Navigation Bar
   Widget _buildGoogleNavBar() {
     return Container(
-      color: Colors.white,
       padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.05,
-        vertical: 10.0,
+        horizontal: MediaQuery.of(context).size.width * 0.00,
       ),
       child: GNav(
         backgroundColor: Colors.white,
         color: Colors.grey,
         activeColor: Colors.blueAccent,
         tabBackgroundColor: Colors.blueAccent.withOpacity(0.1),
-        gap: 8,
-        padding: const EdgeInsets.all(16),
+        gap: 2,
+        padding: const EdgeInsets.all(20),
         tabs: const [
           GButton(
             icon: CupertinoIcons.home,
@@ -136,16 +142,18 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
+  // Method to build section title
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.roboto(
+      style: GoogleFonts.poppins(
         fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
     );
   }
 
+  // Method to build the dashboard button row
   Widget _buildDashboardButtonRow(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -160,6 +168,7 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
+  // Method to build the officer button
   Widget _buildOfficerButton(BuildContext context) {
     return Card(
       elevation: 2.0,
@@ -205,18 +214,20 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
+  // Method to build activity row
   Widget _buildActivityRow() {
     return Row(
       children: [
         Expanded(
-            child:
-                _buildActivityCard("Incident Report", "5 reports submitted")),
+          child: _buildActivityCard("Incident Report", "5 reports submitted"),
+        ),
         const SizedBox(width: 10),
         Expanded(child: _buildActivityCard("Notifications", "2 new alerts")),
       ],
     );
   }
 
+  // Method to build activity card
   Widget _buildActivityCard(String title, String description) {
     return Card(
       elevation: 4.0,
@@ -226,18 +237,21 @@ class SafeSyncBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.bold,
-                )),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(description, style: GoogleFonts.roboto()),
+            Text(description, style: GoogleFonts.poppins()),
           ],
         ),
       ),
     );
   }
 
+  // Method to build incident card
   Widget _buildIncidentCard(String incident, String location, String status) {
     return Card(
       elevation: 4.0,
@@ -248,17 +262,21 @@ class SafeSyncBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(incident,
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.bold,
-                )),
+            Text(
+              incident,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(location, style: GoogleFonts.roboto()),
+            Text(location, style: GoogleFonts.poppins()),
             const SizedBox(height: 4),
             Align(
               alignment: Alignment.centerRight,
-              child: Text("Status: $status",
-                  style: GoogleFonts.roboto(color: Colors.grey)),
+              child: Text(
+                "Status: $status",
+                style: GoogleFonts.poppins(),
+              ),
             ),
           ],
         ),

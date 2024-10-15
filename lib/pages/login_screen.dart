@@ -69,7 +69,8 @@ class LoginScreenState extends State<LoginScreen> {
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 15),
                         border: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.indigo),
+                          borderSide:
+                              const BorderSide(color: Colors.blueAccent),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),

@@ -47,6 +47,7 @@ flutter:
     - assets/images/logo-safesyncwnamelndscp.png
     - assets/images/logo-safesyncwhite.png
     - assets/images/logo-safesyncblue.png
+    - assets/images/appicon.png
 
   fonts:
     - family: Poppins

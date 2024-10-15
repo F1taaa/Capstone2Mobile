@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Safesync',
       theme: ThemeData(
-        fontFamily: 'Poppins',
         primarySwatch: Colors.indigo,
       ),
       home: const SplashScreen(),

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'login_screen.dart';
-import 'edit_profile_screen.dart';
 
 class AccountDashboard extends StatefulWidget {
   const AccountDashboard({super.key});
@@ -112,31 +111,11 @@ class AccountDashboardState extends State<AccountDashboard> {
     );
   }
 
-  Widget _buildMenuItem(String title, IconData icon, VoidCallback onTap) {
-    return Card(
-      elevation: 6,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.blue, size: 28),
-        title: Text(title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-        onTap: onTap,
-      ),
-    );
-  }
-
   Widget _buildMenu() {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         _buildProfileDetailsCard(),
-        _buildMenuItem('Edit Profile', Icons.edit, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-          );
-        }),
         const SizedBox(height: 30),
         _buildLogoutButton(),
       ],
@@ -175,7 +154,7 @@ class AccountDashboardState extends State<AccountDashboard> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/background - design4.png"),
+                image: AssetImage("assets/images/background - design2.png"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -183,10 +162,12 @@ class AccountDashboardState extends State<AccountDashboard> {
           ),
           Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const SizedBox(height: 40),
                 _buildProfileAvatar(),
                 const SizedBox(height: 20),
                 Expanded(child: _buildMenu()),
