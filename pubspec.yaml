@@ -17,11 +17,13 @@ dependencies:
   any_animated_button: ^0.0.4
   multi_select_flutter: ^4.0.0
   http: ^1.2.1
-  location: ^7.0.0 # Updated version
+  location: ^7.0.0
   latlong2: ^0.9.0
   cupertino_icons: ^1.0.2
-  flutter_map: ^7.0.2 # Updated version
-  image_picker: ^1.1.2 # Updated version
+  geolocator: ^13.0.1
+  geocoding: ^3.0.0
+  flutter_map: ^7.0.2
+  image_picker: ^1.1.2
   google_fonts: ^6.2.1
 
 dev_dependencies:

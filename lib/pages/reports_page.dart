@@ -1,7 +1,9 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
+import 'dart:io'; // Import dart:io for File
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart'; // Import geolocator package
 
 // Main class for the ReportsPage
 class ReportsPage extends StatefulWidget {
@@ -19,6 +21,7 @@ class ReportsPageState extends State<ReportsPage> {
   String? _selectedDepartment; // Selected department
   XFile? _imageFile; // File for the uploaded image
   bool _isUploading = false; // Flag to check if uploading
+  String? _currentLocation; // Variable to store the current location
 
   // List of departments for the dropdown
   final List<String> _departments = [
@@ -53,6 +56,52 @@ class ReportsPageState extends State<ReportsPage> {
     });
   }
 
+  // Function to get current location
+  Future<void> _getCurrentLocation() async {
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location services are disabled.'),
+        ),
+      );
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission denied.'),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location permissions are permanently denied.'),
+        ),
+      );
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      _currentLocation =
+          'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
+    });
+  }
+
   // Function to submit the report
   Future<void> _submitReport() async {
     // Validate the form
@@ -74,6 +123,7 @@ class ReportsPageState extends State<ReportsPage> {
         _selectedSeverity = null;
         _imageFile = null;
         _selectedDepartment = null;
+        _currentLocation = null; // Reset current location
       });
 
       // Show success message
@@ -100,7 +150,7 @@ class ReportsPageState extends State<ReportsPage> {
           'Report Incident',
           style: GoogleFonts.poppins(
             fontSize: MediaQuery.of(context).size.width * 0.1,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.bold,
             color: Colors.blueAccent,
           ),
         ),
@@ -126,6 +176,12 @@ class ReportsPageState extends State<ReportsPage> {
                       const SizedBox(height: 20),
                       _buildUploadEvidenceButton(), // Button to upload evidence
                       const SizedBox(height: 20),
+                      if (_currentLocation != null) // Display current location
+                        Text(
+                          _currentLocation!,
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black54),
+                        ),
                     ],
                   ),
                 ),
@@ -140,25 +196,29 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget to display incident location
+  // Widget to display incident location and get location
   Widget _buildIncidentLocation() {
-    return Container(
-      height: 150,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
-        ],
-      ),
-      child: const Center(
-        child: Text(
-          'Incident Location',
-          style: TextStyle(
-            color: Colors.black54,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+    return GestureDetector(
+      onTap: _getCurrentLocation, // Get current location on tap
+      child: Container(
+        height: 150,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            _currentLocation ?? 'Tap to get current location',
+            style: TextStyle(
+              color: _currentLocation != null ? Colors.black : Colors.black54,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -204,7 +264,7 @@ class ReportsPageState extends State<ReportsPage> {
         });
       },
       items: _severityLevels,
-      label: 'Select Severity',
+      label: 'Select Urgency',
       icon: Icons.priority_high,
     );
   }
@@ -217,35 +277,26 @@ class ReportsPageState extends State<ReportsPage> {
     required String label,
     required IconData icon,
   }) {
-    return DropdownButtonFormField<T>(
-      value: value,
-      onChanged: onChanged,
-      items: items.map((item) {
-        return DropdownMenuItem<T>(
-          value: item as T,
-          child: Row(
-            children: [
-              const SizedBox(width: 8),
-              Text(item, style: const TextStyle(fontSize: 16)),
-            ],
-          ),
-        );
-      }).toList(),
+    return InputDecorator(
       decoration: InputDecoration(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         labelText: label,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+        prefixIcon: Icon(icon),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          onChanged: onChanged,
+          items: items.map((String item) {
+            return DropdownMenuItem<T>(
+              value: item as T,
+              child: Text(item),
+            );
+          }).toList(),
+          isExpanded: true,
+          hint: const Text('Select an option'),
         ),
       ),
-      validator: (value) {
-        if (value == null) {
-          return 'Please select a $label.'; // Validation message
-        }
-        return null; // Return null if validation passes
-      },
     );
   }
 
@@ -264,69 +315,56 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget for the upload evidence button
+  // Widget for upload evidence that matches the location design
   Widget _buildUploadEvidenceButton() {
     return GestureDetector(
-      onTap: _imageFile == null
-          ? _takePhoto
-          : null, // Take photo if no image uploaded
-      behavior: HitTestBehavior.translucent,
-      child: SizedBox(
+      onTap: _takePhoto, // Call the take photo method
+      child: Container(
         height: 150,
         width: double.infinity,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                  color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
-            ],
-          ),
-          child: Center(
-            child: _imageFile == null
-                ? const Text(
-                    'Upload Evidence (Tap to Take Photo)',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Evidence Uploaded',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _imageFile!.name, // Display uploaded image name
-                        style: const TextStyle(color: Color(0xFF3115F6)),
-                      ),
-                    ],
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
+          ],
+        ),
+        child: Center(
+          child: _imageFile != null
+              ? Image.file(
+                  File(_imageFile!.path),
+                  fit: BoxFit.cover, // Adjust the image to cover the area
+                  width: double.infinity, // Full width
+                  height: 150, // Fixed height
+                )
+              : const Text(
+                  'Tap to Take Photo',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                   ),
-          ),
+                ),
         ),
       ),
     );
   }
 
-  // Widget for the submit button
+  // Widget for submit button
   Widget _buildSubmitButton() {
     return ElevatedButton(
-      onPressed: _submitReport, // Submit report on press
+      onPressed: _submitReport, // Submit the report on press
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blueAccent,
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
+        minimumSize: const Size(150, 50),
+        backgroundColor: Colors.blueAccent, // Submit button color
       ),
       child: _isUploading
           ? const CircularProgressIndicator(
-              color: Colors.white) // Show loading indicator while uploading
+              color: Colors.white) // Show loading spinner
           : const Text(
               'Submit Report',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: Colors.white),
             ),
     );
   }
