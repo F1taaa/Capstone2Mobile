@@ -1,11 +1,13 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import 'dart:io'; // Import dart:io for File
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:geolocator/geolocator.dart'; // Import geolocator package
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart'; // Import geocoding package
 
-// Main class for the ReportsPage
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
 
@@ -13,17 +15,15 @@ class ReportsPage extends StatefulWidget {
   ReportsPageState createState() => ReportsPageState();
 }
 
-// State class for ReportsPage
 class ReportsPageState extends State<ReportsPage> {
-  final _formKey = GlobalKey<FormState>(); // Key for the form
-  String? _selectedEmergency; // Selected emergency type
-  String? _selectedSeverity; // Selected severity level
-  String? _selectedDepartment; // Selected department
-  XFile? _imageFile; // File for the uploaded image
-  bool _isUploading = false; // Flag to check if uploading
-  String? _currentLocation; // Variable to store the current location
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedEmergency;
+  String? _selectedSeverity;
+  String? _selectedDepartment;
+  XFile? _imageFile;
+  bool _isUploading = false;
+  String? _currentAddress; // Variable to store the readable address
 
-  // List of departments for the dropdown
   final List<String> _departments = [
     'Police Department',
     'Fire Department',
@@ -31,7 +31,6 @@ class ReportsPageState extends State<ReportsPage> {
     'Barangay'
   ];
 
-  // List of emergency types for the dropdown
   final List<String> _emergencyTypes = [
     'Fire Outbreak',
     'Car Crash',
@@ -43,24 +42,20 @@ class ReportsPageState extends State<ReportsPage> {
     'Other'
   ];
 
-  // List of severity levels for the dropdown
   final List<String> _severityLevels = ['Low', 'Medium', 'High'];
 
-  // Function to take a photo using the camera
   Future<void> _takePhoto() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (!mounted) return; // Check if the widget is still mounted
+    if (!mounted) return;
     setState(() {
-      _imageFile = image; // Update the image file
+      _imageFile = image;
     });
   }
 
-  // Function to get current location
   Future<void> _getCurrentLocation() async {
     LocationPermission permission;
 
-    // Check if location services are enabled
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,44 +91,60 @@ class ReportsPageState extends State<ReportsPage> {
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
 
-    setState(() {
-      _currentLocation =
-          'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
-    });
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    if (placemarks.isNotEmpty) {
+      Placemark place = placemarks[0];
+
+      setState(() {
+        _currentAddress =
+            '${place.locality ?? ''}, ${place.thoroughfare ?? ''}, ${place.country ?? ''}'
+                .trim(); // Adjust as needed
+      });
+    }
   }
 
-  // Function to submit the report
   Future<void> _submitReport() async {
-    // Validate the form
+    // Check if any fields are null
+    if (_selectedEmergency == null ||
+        _selectedSeverity == null ||
+        _selectedDepartment == null ||
+        _currentAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields must be filled.'),
+        ),
+      );
+      return;
+    }
+
+    // Proceed with report submission if all validations pass
     if (_formKey.currentState?.validate() ?? false) {
-      if (_isUploading) return; // Prevent multiple uploads
+      if (_isUploading) return;
 
       setState(() {
-        _isUploading = true; // Start uploading
+        _isUploading = true;
       });
 
-      // Simulate a network call
       await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
 
-      // Reset form fields after submission
       setState(() {
-        _isUploading = false; // End uploading
+        _isUploading = false;
         _selectedEmergency = null;
         _selectedSeverity = null;
         _imageFile = null;
         _selectedDepartment = null;
-        _currentLocation = null; // Reset current location
+        _currentAddress = null; // Reset current address
       });
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Report submitted successfully!'),
         ),
       );
     } else {
-      // Show error message if validation fails
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill all fields correctly.'),
@@ -159,7 +170,7 @@ class ReportsPageState extends State<ReportsPage> {
         height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.all(20.0),
         child: Form(
-          key: _formKey, // Assign the form key
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -168,26 +179,19 @@ class ReportsPageState extends State<ReportsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildIncidentLocation(), // Widget for incident location
+                      _buildIncidentLocation(),
                       const SizedBox(height: 20),
-                      _buildTypeAndSeverityDropdowns(), // Dropdowns for type and severity
+                      _buildTypeAndSeverityDropdowns(),
                       const SizedBox(height: 20),
-                      _buildDepartmentDropdown(), // Dropdown for department selection
+                      _buildDepartmentDropdown(),
                       const SizedBox(height: 20),
-                      _buildUploadEvidenceButton(), // Button to upload evidence
-                      const SizedBox(height: 20),
-                      if (_currentLocation != null) // Display current location
-                        Text(
-                          _currentLocation!,
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.black54),
-                        ),
+                      _buildUploadEvidenceButton(),
                     ],
                   ),
                 ),
               ),
               Center(
-                child: _buildSubmitButton(), // Button to submit the report
+                child: _buildSubmitButton(),
               ),
             ],
           ),
@@ -196,10 +200,9 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget to display incident location and get location
   Widget _buildIncidentLocation() {
     return GestureDetector(
-      onTap: _getCurrentLocation, // Get current location on tap
+      onTap: _getCurrentLocation,
       child: Container(
         height: 150,
         width: double.infinity,
@@ -212,40 +215,52 @@ class ReportsPageState extends State<ReportsPage> {
           ],
         ),
         child: Center(
-          child: Text(
-            _currentLocation ?? 'Tap to get current location',
-            style: TextStyle(
-              color: _currentLocation != null ? Colors.black : Colors.black54,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_currentAddress != null) // Only show the address if available
+                Text(
+                  _currentAddress!,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+              else
+                const Text(
+                  'Tap to get current location',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // Widget to build dropdowns for incident type and severity
   Widget _buildTypeAndSeverityDropdowns() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
-          child: _buildIncidentTypeDropdown(), // Incident type dropdown
+          child: _buildIncidentTypeDropdown(),
         ),
-        _buildSeverityDropdown(), // Severity dropdown
+        _buildSeverityDropdown(),
       ],
     );
   }
 
-  // Widget for incident type dropdown
   Widget _buildIncidentTypeDropdown() {
     return _buildDropdown<String>(
       value: _selectedEmergency,
       onChanged: (newValue) {
         setState(() {
-          _selectedEmergency = newValue; // Update selected emergency
+          _selectedEmergency = newValue;
         });
       },
       items: _emergencyTypes,
@@ -254,13 +269,12 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget for severity dropdown
   Widget _buildSeverityDropdown() {
     return _buildDropdown<String>(
       value: _selectedSeverity,
       onChanged: (newValue) {
         setState(() {
-          _selectedSeverity = newValue; // Update selected severity
+          _selectedSeverity = newValue;
         });
       },
       items: _severityLevels,
@@ -269,7 +283,6 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Generic dropdown widget
   Widget _buildDropdown<T>({
     required T? value,
     required ValueChanged<T?>? onChanged,
@@ -300,13 +313,12 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget for department dropdown
   Widget _buildDepartmentDropdown() {
     return _buildDropdown<String>(
       value: _selectedDepartment,
       onChanged: (newValue) {
         setState(() {
-          _selectedDepartment = newValue; // Update selected department
+          _selectedDepartment = newValue;
         });
       },
       items: _departments,
@@ -315,7 +327,6 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget for upload evidence that matches the location design
   Widget _buildUploadEvidenceButton() {
     return GestureDetector(
       onTap: _takePhoto, // Call the take photo method
@@ -351,7 +362,6 @@ class ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // Widget for submit button
   Widget _buildSubmitButton() {
     return ElevatedButton(
       onPressed: _submitReport, // Submit the report on press
