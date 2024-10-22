@@ -32,7 +32,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.caps2"
-        minSdk = localProperties.getProperty("flutter.minSdkVersion", "21").toInteger() // Default to min SDK 21
+        minSdk = localProperties.getProperty("flutter.minSdkVersion", "21").toInteger() 
         targetSdk = 34 
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName

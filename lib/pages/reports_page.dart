@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+// ignore_for_file: use_build_context_synchronously
 
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
@@ -6,7 +6,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart'; // Import geocoding package
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -22,7 +23,7 @@ class ReportsPageState extends State<ReportsPage> {
   String? _selectedDepartment;
   XFile? _imageFile;
   bool _isUploading = false;
-  String? _currentAddress; // Variable to store the readable address
+  String? _currentAddress;
 
   final List<String> _departments = [
     'Police Department',
@@ -100,13 +101,12 @@ class ReportsPageState extends State<ReportsPage> {
       setState(() {
         _currentAddress =
             '${place.locality ?? ''}, ${place.thoroughfare ?? ''}, ${place.country ?? ''}'
-                .trim(); // Adjust as needed
+                .trim();
       });
     }
   }
 
   Future<void> _submitReport() async {
-    // Check if any fields are null
     if (_selectedEmergency == null ||
         _selectedSeverity == null ||
         _selectedDepartment == null ||
@@ -119,7 +119,6 @@ class ReportsPageState extends State<ReportsPage> {
       return;
     }
 
-    // Proceed with report submission if all validations pass
     if (_formKey.currentState?.validate() ?? false) {
       if (_isUploading) return;
 
@@ -127,28 +126,55 @@ class ReportsPageState extends State<ReportsPage> {
         _isUploading = true;
       });
 
-      await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
+      try {
+        var url = Uri.parse(
+            'https://capstonestey.helioho.st/safesync-mobile/submit_report.php');
+        var request = http.MultipartRequest('POST', url);
 
-      setState(() {
-        _isUploading = false;
-        _selectedEmergency = null;
-        _selectedSeverity = null;
-        _imageFile = null;
-        _selectedDepartment = null;
-        _currentAddress = null; // Reset current address
-      });
+        request.fields['emergency_type'] = _selectedEmergency!;
+        request.fields['severity_level'] = _selectedSeverity!;
+        request.fields['department'] = _selectedDepartment!;
+        request.fields['location'] = _currentAddress!;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report submitted successfully!'),
-        ),
-      );
+        if (_imageFile != null) {
+          var file =
+              await http.MultipartFile.fromPath('image', _imageFile!.path);
+          request.files.add(file);
+        }
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          // Resetting form fields
+          setState(() {
+            _selectedEmergency = null;
+            _selectedSeverity = null;
+            _selectedDepartment = null;
+            _imageFile = null;
+            _currentAddress = null;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Report submitted successfully!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Failed to submit the report. Please try again.')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: $e')),
+        );
+      } finally {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all fields correctly.'),
-        ),
+        const SnackBar(content: Text('Please fill all fields correctly.')),
       );
     }
   }
@@ -218,7 +244,7 @@ class ReportsPageState extends State<ReportsPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (_currentAddress != null) // Only show the address if available
+              if (_currentAddress != null)
                 Text(
                   _currentAddress!,
                   style: const TextStyle(
@@ -329,7 +355,7 @@ class ReportsPageState extends State<ReportsPage> {
 
   Widget _buildUploadEvidenceButton() {
     return GestureDetector(
-      onTap: _takePhoto, // Call the take photo method
+      onTap: _takePhoto,
       child: Container(
         height: 150,
         width: double.infinity,
@@ -345,9 +371,9 @@ class ReportsPageState extends State<ReportsPage> {
           child: _imageFile != null
               ? Image.file(
                   File(_imageFile!.path),
-                  fit: BoxFit.cover, // Adjust the image to cover the area
-                  width: double.infinity, // Full width
-                  height: 150, // Fixed height
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 150,
                 )
               : const Text(
                   'Tap to Take Photo',
@@ -364,14 +390,13 @@ class ReportsPageState extends State<ReportsPage> {
 
   Widget _buildSubmitButton() {
     return ElevatedButton(
-      onPressed: _submitReport, // Submit the report on press
+      onPressed: _submitReport,
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(150, 50),
-        backgroundColor: Colors.blueAccent, // Submit button color
+        backgroundColor: Colors.blueAccent,
       ),
       child: _isUploading
-          ? const CircularProgressIndicator(
-              color: Colors.white) // Show loading spinner
+          ? const CircularProgressIndicator(color: Colors.white)
           : const Text(
               'Submit Report',
               style: TextStyle(color: Colors.white),
