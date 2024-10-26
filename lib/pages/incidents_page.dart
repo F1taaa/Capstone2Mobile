@@ -81,9 +81,7 @@ class IncidentsPageState extends State<IncidentsPage>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: _incidentTypes
-              .map((type) => Tab(text: type))
-              .toList(), // Creating tabs for incident types
+          tabs: _incidentTypes.map((type) => Tab(text: type)).toList(),
         ),
       ),
       body: SafeArea(
@@ -92,7 +90,7 @@ class IncidentsPageState extends State<IncidentsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSearchBar(context), // Search bar for filtering incidents
+              _buildSearchBar(context),
               const SizedBox(height: 20),
               Text(
                 "Incident List",
@@ -106,8 +104,7 @@ class IncidentsPageState extends State<IncidentsPage>
                 child: TabBarView(
                   controller: _tabController,
                   children: _incidentTypes.map((type) {
-                    return _buildIncidentList(context,
-                        type); // Building the incident list for each tab
+                    return _buildIncidentList(context, type);
                   }).toList(),
                 ),
               ),

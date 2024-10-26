@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'home.dart';
 
@@ -13,21 +15,38 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  void _login() {
+  void _login() async {
     setState(() {
       _isLoading = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _isLoading = false;
-      });
+    final response = await http.post(
+      Uri.parse('http://192.168.56.1/Safesync_api/user/login.php'),
+      headers: <String, String>{
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+      },
+    );
 
+    final responseData = json.decode(response.body);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (responseData['status'] == 'success') {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const SafeSyncDashboard()),
       );
-    });
+    } else {
+      // Handle error (e.g., show a message)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(responseData['message'])));
+    }
   }
 
   @override
@@ -100,7 +119,7 @@ class LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading ? null : _login,
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all<Color>(
-                            const Color(0xFF3115F6)), // Changed color
+                            const Color(0xFF3115F6)),
                         foregroundColor:
                             WidgetStateProperty.all<Color>(Colors.white),
                       ),

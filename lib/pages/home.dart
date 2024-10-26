@@ -86,7 +86,6 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
         : null;
   }
 
-  // Method to build the Google Navigation Bar
   Widget _buildGoogleNavBar() {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -142,7 +141,6 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
-  // Method to build section title
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -153,7 +151,6 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
-  // Method to build the dashboard button row
   Widget _buildDashboardButtonRow(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -168,7 +165,6 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
-  // Method to build the officer button
   Widget _buildOfficerButton(BuildContext context) {
     return Card(
       elevation: 2.0,
@@ -251,7 +247,6 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
-  // Method to build incident card
   Widget _buildIncidentCard(String incident, String location, String status) {
     return Card(
       elevation: 4.0,

@@ -1,5 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'dart:io';
@@ -7,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:http/http.dart' as http;
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -29,21 +31,22 @@ class ReportsPageState extends State<ReportsPage> {
     'Police Department',
     'Fire Department',
     'Emergency Unit',
-    'Barangay'
+    'Barangay',
   ];
 
   final List<String> _emergencyTypes = [
     'Fire Outbreak',
     'Car Crash',
     'Theft',
-    'Harassment',
-    'Shooting',
-    'Noise Complaint',
     'Medical Attention',
-    'Other'
   ];
 
-  final List<String> _severityLevels = ['Low', 'Medium', 'High'];
+  final List<String> _severityLevels = [
+    'Low',
+    'Medium',
+    'High',
+    'Critical',
+  ];
 
   Future<void> _takePhoto() async {
     final ImagePicker picker = ImagePicker();
@@ -107,76 +110,59 @@ class ReportsPageState extends State<ReportsPage> {
   }
 
   Future<void> _submitReport() async {
-    if (_selectedEmergency == null ||
-        _selectedSeverity == null ||
-        _selectedDepartment == null ||
-        _currentAddress == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields must be filled.'),
+    setState(() {
+      _isUploading = true;
+    });
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://192.168.56.1/Safesync_api/reporting/submit_report.php'),
+    );
+
+    // Add fields to the request
+    request.fields['emergency'] = _selectedEmergency ?? '';
+    request.fields['severity'] = _selectedSeverity ?? '';
+    request.fields['department'] = _selectedDepartment ?? '';
+    request.fields['location'] = _currentAddress ?? '';
+
+    // Add image file to the request
+    if (_imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          _imageFile!.path,
         ),
       );
-      return;
     }
 
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_isUploading) return;
+    // Send the request
+    final response = await request.send();
+
+    // Handle response
+    if (response.statusCode == 200) {
+      final responseData = await http.Response.fromStream(response);
+      final jsonResponse = json.decode(responseData.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(jsonResponse['message'])),
+      );
 
       setState(() {
-        _isUploading = true;
+        _selectedEmergency = null;
+        _selectedSeverity = null;
+        _selectedDepartment = null;
+        _currentAddress = null;
+        _imageFile = null;
       });
-
-      try {
-        var url = Uri.parse(
-            'https://capstonestey.helioho.st/safesync-mobile/submit_report.php');
-        var request = http.MultipartRequest('POST', url);
-
-        request.fields['emergency_type'] = _selectedEmergency!;
-        request.fields['severity_level'] = _selectedSeverity!;
-        request.fields['department'] = _selectedDepartment!;
-        request.fields['location'] = _currentAddress!;
-
-        if (_imageFile != null) {
-          var file =
-              await http.MultipartFile.fromPath('image', _imageFile!.path);
-          request.files.add(file);
-        }
-        var response = await request.send();
-
-        if (response.statusCode == 200) {
-          // Resetting form fields
-          setState(() {
-            _selectedEmergency = null;
-            _selectedSeverity = null;
-            _selectedDepartment = null;
-            _imageFile = null;
-            _currentAddress = null;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Report submitted successfully!')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content:
-                    Text('Failed to submit the report. Please try again.')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred: $e')),
-        );
-      } finally {
-        setState(() {
-          _isUploading = false;
-        });
-      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields correctly.')),
+        const SnackBar(content: Text('Failed to submit report.')),
       );
     }
+
+    setState(() {
+      _isUploading = false;
+    });
   }
 
   @override
@@ -318,21 +304,21 @@ class ReportsPageState extends State<ReportsPage> {
   }) {
     return InputDecorator(
       decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(),
         labelText: label,
         prefixIcon: Icon(icon),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
+          isExpanded: true,
           value: value,
           onChanged: onChanged,
-          items: items.map((String item) {
+          items: items.map<DropdownMenuItem<T>>((String item) {
             return DropdownMenuItem<T>(
               value: item as T,
               child: Text(item),
             );
           }).toList(),
-          isExpanded: true,
           hint: const Text('Select an option'),
         ),
       ),
@@ -368,21 +354,16 @@ class ReportsPageState extends State<ReportsPage> {
           ],
         ),
         child: Center(
-          child: _imageFile != null
-              ? Image.file(
-                  File(_imageFile!.path),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: 150,
-                )
-              : const Text(
-                  'Tap to Take Photo',
+          child: _imageFile == null
+              ? const Text(
+                  'Tap to upload evidence (Image)',
                   style: TextStyle(
                     color: Colors.black54,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
-                ),
+                )
+              : Image.file(File(_imageFile!.path)),
         ),
       ),
     );
@@ -390,13 +371,20 @@ class ReportsPageState extends State<ReportsPage> {
 
   Widget _buildSubmitButton() {
     return ElevatedButton(
-      onPressed: _submitReport,
+      onPressed: _isUploading ? null : _submitReport,
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(150, 50),
         backgroundColor: Colors.blueAccent,
       ),
       child: _isUploading
-          ? const CircularProgressIndicator(color: Colors.white)
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            )
           : const Text(
               'Submit Report',
               style: TextStyle(color: Colors.white),
