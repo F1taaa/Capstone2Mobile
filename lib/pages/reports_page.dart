@@ -119,13 +119,11 @@ class ReportsPageState extends State<ReportsPage> {
       Uri.parse('http://192.168.56.1/Safesync_api/reporting/submit_report.php'),
     );
 
-    // Add fields to the request
     request.fields['emergency'] = _selectedEmergency ?? '';
     request.fields['severity'] = _selectedSeverity ?? '';
     request.fields['department'] = _selectedDepartment ?? '';
     request.fields['location'] = _currentAddress ?? '';
 
-    // Add image file to the request
     if (_imageFile != null) {
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -304,7 +302,7 @@ class ReportsPageState extends State<ReportsPage> {
   }) {
     return InputDecorator(
       decoration: InputDecoration(
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         labelText: label,
         prefixIcon: Icon(icon),
       ),
