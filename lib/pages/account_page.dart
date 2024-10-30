@@ -90,27 +90,51 @@ class AccountDashboardState extends State<AccountDashboard> {
     );
   }
 
+  Future<Map<String, String?>> _getUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return {
+      'name': prefs.getString('name'),
+      'position': prefs.getString('position'),
+      'address': prefs.getString('address'),
+      'number': prefs.getString('number'),
+    };
+  }
+
   Widget _buildProfileDetailsCard() {
-    return Card(
-      elevation: 6,
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileInfo('Name:', 'John Doe'),
-            _buildProfileInfo('Position:', 'BTAO Officer'),
-            _buildProfileInfo('Date of Birth:', '01/01/1985'),
-            _buildProfileInfo('Address:', 'Barangay Villamonte'),
-            const SizedBox(height: 10),
-            const Divider(),
-            const SizedBox(height: 10),
-            _buildContactInfo('Contact Number:', '09178432411', Icons.phone),
-          ],
-        ),
-      ),
+    return FutureBuilder<Map<String, String?>>(
+      future: _getUserData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const Center(child: Text('Error loading data'));
+        }
+
+        final userData = snapshot.data;
+
+        return Card(
+          elevation: 6,
+          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileInfo('Name:', userData?['name'] ?? 'N/A'),
+                _buildProfileInfo('Position:', userData?['position'] ?? 'N/A'),
+                _buildProfileInfo('Address:', userData?['address'] ?? 'N/A'),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 10),
+                _buildContactInfo('Contact Number:',
+                    userData?['number'] ?? 'N/A', Icons.phone),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -129,7 +153,7 @@ class AccountDashboardState extends State<AccountDashboard> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: ElevatedButton.icon(
-        onPressed: () => _logout(), // Call the logout function
+        onPressed: () => _logout(),
         icon: const Icon(Icons.logout),
         label: const Text('Log Out'),
         style: ElevatedButton.styleFrom(

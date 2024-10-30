@@ -40,6 +40,10 @@ class LoginScreenState extends State<LoginScreen> {
       if (data['success'] == true) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_id', userId);
+        await prefs.setString('name', data['name']);
+        await prefs.setString('position', data['position']);
+        await prefs.setString('number', data['number']);
+        await prefs.setString('address', data['address']);
 
         Navigator.pushReplacement(
           context,

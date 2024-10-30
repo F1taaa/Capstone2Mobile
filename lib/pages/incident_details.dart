@@ -31,8 +31,6 @@ class IncidentDetails extends StatelessWidget {
               _buildIncidentLocation(),
               const SizedBox(height: 20),
               _buildImagesTaken(),
-              const SizedBox(height: 20),
-              _buildDepartmentsNotified(),
             ],
           ),
         ),
@@ -126,30 +124,6 @@ class IncidentDetails extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 5),
         Text("${incident["images"]} $imagesLabel"),
-      ],
-    );
-  }
-
-  Widget _buildDepartmentsNotified() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Departments Notified",
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ...List.generate(
-          incident["departmentsNotified"]?.length ?? 0,
-          (index) {
-            return Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.green),
-                const SizedBox(width: 8),
-                Text(incident["departmentsNotified"][index] as String? ??
-                    "Unknown"),
-              ],
-            );
-          },
-        ),
       ],
     );
   }

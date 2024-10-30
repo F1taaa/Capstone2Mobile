@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:safesync/pages/account_page.dart';
 import 'package:safesync/pages/reports_page.dart';
@@ -79,8 +80,6 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
                 onPressed: () {},
               ),
             ],
-            backgroundColor: Colors.transparent,
-            elevation: 0,
           )
         : null;
   }
@@ -88,7 +87,7 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
   Widget _buildGoogleNavBar() {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.00,
+        horizontal: MediaQuery.of(context).size.width * 0.05,
       ),
       child: GNav(
         backgroundColor: Colors.white,
@@ -124,7 +123,7 @@ class SafeSyncBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(10),
       children: [
         _buildDashboardButtonRow(context),
         const SizedBox(height: 20.0),
@@ -141,11 +140,15 @@ class SafeSyncBody extends StatelessWidget {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 25,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+        ),
       ),
     );
   }
@@ -165,51 +168,66 @@ class SafeSyncBody extends StatelessWidget {
   }
 
   Widget _buildOfficerButton(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AccountDashboard()),
-          );
-        },
-        child: const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Icon(
-                CupertinoIcons.profile_circled,
-                size: 50,
-                color: Colors.blueAccent,
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Officer John Doe",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text("Officer: 123456"),
-                    Text("Contact: (123) 456-7890"),
-                  ],
+    return FutureBuilder<Map<String, String?>>(
+      future: _getUserData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const Center(child: Text('Error loading data'));
+        }
+
+        final userData = snapshot.data;
+
+        return Card(
+          elevation: 4.0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccountDashboard(),
                 ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.profile_circled,
+                    size: 60,
+                    color: Colors.blueAccent,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userData?['name'] ?? 'Officer Name',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text("Officer: ${userData?['position'] ?? 'N/A'}"),
+                        Text("Contact: ${userData?['number'] ?? 'N/A'}"),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  // Method to build activity row
   Widget _buildActivityRow() {
     return Row(
       children: [
@@ -222,7 +240,6 @@ class SafeSyncBody extends StatelessWidget {
     );
   }
 
-  // Method to build activity card
   Widget _buildActivityCard(String title, String description) {
     return Card(
       elevation: 4.0,
@@ -252,29 +269,29 @@ class SafeSyncBody extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Container(
         padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               incident,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-              ),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            Text("Location: $location"),
             const SizedBox(height: 4),
-            Text(location, style: GoogleFonts.poppins()),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                "Status: $status",
-                style: GoogleFonts.poppins(),
-              ),
-            ),
+            Text("Status: $status"),
           ],
         ),
       ),
     );
+  }
+
+  Future<Map<String, String?>> _getUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return {
+      'name': prefs.getString('name'),
+      'position': prefs.getString('position'),
+      'number': prefs.getString('number'),
+    };
   }
 }

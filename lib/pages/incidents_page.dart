@@ -25,37 +25,31 @@ class IncidentsPageState extends State<IncidentsPage>
     {
       "type": "Rear-end Collision",
       "location": "Lacson St. Bacolod City",
-      "status": "In Progress",
       "severity": "High",
     },
     {
       "type": "Road Hazard - Fallen Tree",
       "location": "Junction A, Bacolod City",
-      "status": "Acknowledged",
       "severity": "Medium",
     },
     {
       "type": "Traffic Jam - Road Construction",
       "location": "B.S. Aquino Drive, Bacolod City",
-      "status": "In Progress",
       "severity": "Medium",
     },
     {
       "type": "Flooding Due to Heavy Rain",
       "location": "Banago, Bacolod City",
-      "status": "Acknowledged",
       "severity": "High",
     },
     {
       "type": "Public Disturbance - Loud Party",
       "location": "Brgy. 3, Bacolod City",
-      "status": "Resolved",
       "severity": "Low",
     },
     {
       "type": "Accident - Motorcycle Collision",
       "location": "Circumferential Road, Bacolod City",
-      "status": "In Progress",
       "severity": "High",
     },
   ];

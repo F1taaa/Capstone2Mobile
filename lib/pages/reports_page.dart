@@ -109,57 +109,69 @@ class ReportsPageState extends State<ReportsPage> {
   }
 
   Future<void> _submitReport() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all the fields.')),
+      );
+      return;
+    }
+
     setState(() {
       _isUploading = true;
     });
 
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://192.168.56.1/Safesync_api/reporting/submit_report.php'),
-    );
-
-    request.fields['emergency'] = _selectedEmergency ?? '';
-    request.fields['severity'] = _selectedSeverity ?? '';
-    request.fields['department'] = _selectedDepartment ?? '';
-    request.fields['location'] = _currentAddress ?? '';
-
-    if (_imageFile != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'image',
-          _imageFile!.path,
-        ),
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+            'http://192.168.56.1/Safesync_api/reporting/submit_report.php'),
       );
-    }
 
-    // Send the request
-    final response = await request.send();
+      request.fields['emergency'] = _selectedEmergency ?? '';
+      request.fields['severity'] = _selectedSeverity ?? '';
+      request.fields['department'] = _selectedDepartment ?? '';
+      request.fields['location'] = _currentAddress ?? '';
 
-    // Handle response
-    if (response.statusCode == 200) {
-      final responseData = await http.Response.fromStream(response);
-      final jsonResponse = json.decode(responseData.body);
+      if (_imageFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'image',
+            _imageFile!.path,
+          ),
+        );
+      }
 
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await http.Response.fromStream(response);
+        final jsonResponse = json.decode(responseData.body);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(jsonResponse['message'])),
+        );
+
+        // Clear form fields
+        setState(() {
+          _selectedEmergency = null;
+          _selectedSeverity = null;
+          _selectedDepartment = null;
+          _currentAddress = null;
+          _imageFile = null;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit report.')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(jsonResponse['message'])),
+        const SnackBar(content: Text('Network error occurred.')),
       );
-
+    } finally {
       setState(() {
-        _selectedEmergency = null;
-        _selectedSeverity = null;
-        _selectedDepartment = null;
-        _currentAddress = null;
-        _imageFile = null;
+        _isUploading = false;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit report.')),
-      );
     }
-
-    setState(() {
-      _isUploading = false;
-    });
   }
 
   @override

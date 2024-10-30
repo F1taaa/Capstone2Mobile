@@ -14,10 +14,20 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _userIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _positionController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController();
+
   bool _isLoading = false;
 
   Future<void> _register() async {
-    if (_userIdController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_userIdController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _nameController.text.isEmpty ||
+        _positionController.text.isEmpty ||
+        _addressController.text.isEmpty ||
+        _numberController.text.isEmpty) {
       // Show error message if inputs are empty
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
@@ -35,6 +45,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         body: {
           'user_id': _userIdController.text,
           'password': _passwordController.text,
+          'name': _nameController.text,
+          'position': _positionController.text,
+          'address': _addressController.text,
+          'number': _numberController.text,
         },
       );
 
@@ -50,7 +64,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } catch (error) {
-      // Handle network error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Failed to register. Please try again later.')),
@@ -79,6 +92,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
+            ),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: _positionController,
+              decoration: const InputDecoration(labelText: 'Position'),
+            ),
+            TextField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Address'),
+            ),
+            TextField(
+              controller: _numberController,
+              decoration: const InputDecoration(labelText: 'Contact Number'),
+              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
