@@ -58,7 +58,6 @@ class SafeSyncDashboardState extends State<SafeSyncDashboard> {
     );
   }
 
-  // Method to build the AppBar
   AppBar? _buildAppBar(BuildContext context) {
     return _selectedIndex == 0
         ? AppBar(

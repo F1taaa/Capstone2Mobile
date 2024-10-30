@@ -1,8 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
+import 'package:safesync/pages/login_screen.dart';
 
 class AccountDashboard extends StatefulWidget {
   const AccountDashboard({super.key});
@@ -127,17 +129,7 @@ class AccountDashboardState extends State<AccountDashboard> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: ElevatedButton.icon(
-        onPressed: () async {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.remove('user_id');
-
-          Navigator.pushAndRemoveUntil(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-          );
-        },
+        onPressed: () => _logout(), // Call the logout function
         icon: const Icon(Icons.logout),
         label: const Text('Log Out'),
         style: ElevatedButton.styleFrom(
@@ -147,6 +139,15 @@ class AccountDashboardState extends State<AccountDashboard> {
           elevation: 5,
         ),
       ),
+    );
+  }
+
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_id');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 

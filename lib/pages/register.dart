@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -16,34 +16,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  void _register() async {
+  Future<void> _register() async {
+    if (_userIdController.text.isEmpty || _passwordController.text.isEmpty) {
+      // Show error message if inputs are empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    final response = await http.post(
-      Uri.parse('http://192.168.56.1/Safesync_api/user/register.php'),
-      body: {
-        'user_id': _userIdController.text,
-        'password': _passwordController.text,
-      },
-    );
-
-    final responseData = json.decode(response.body);
-
-    if (responseData['status'] == 'success') {
-      // Registration successful, navigate to login or dashboard
-      Navigator.pop(context); // Go back to login screen
-    } else {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(responseData['message'])),
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.56.1/Safesync_api/user/register.php'),
+        body: {
+          'user_id': _userIdController.text,
+          'password': _passwordController.text,
+        },
       );
-    }
 
-    setState(() {
-      _isLoading = false;
-    });
+      final responseData = json.decode(response.body);
+
+      if (responseData['status'] == 'success') {
+        // Registration successful, navigate to login or dashboard
+        Navigator.pop(context); // Go back to login screen
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['message'])),
+        );
+      }
+    } catch (error) {
+      // Handle network error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to register. Please try again later.')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -68,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ElevatedButton(
               onPressed: _isLoading ? null : _register,
               child: _isLoading
-                  ? const CircularProgressIndicator()
+                  ? const CircularProgressIndicator(color: Colors.white)
                   : const Text('Register'),
             ),
           ],
