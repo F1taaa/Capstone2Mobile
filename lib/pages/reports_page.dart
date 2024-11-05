@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
@@ -147,7 +149,7 @@ class ReportsPageState extends State<ReportsPage> {
       request.fields['severity'] = _selectedSeverity!;
       request.fields['department'] = _selectedDepartment!;
       request.fields['location'] = _currentAddress!;
-      request.fields['user_id'] = _userId!;
+      request.fields['user_id'] = _userId!; // Send user_id here
 
       // Add image if exists
       if (_imageFile != null) {
@@ -169,7 +171,7 @@ class ReportsPageState extends State<ReportsPage> {
           SnackBar(content: Text(result['message'])),
         );
 
-        // Reset form
+        // Reset form fields after submission
         setState(() {
           _selectedEmergency = null;
           _selectedSeverity = null;
