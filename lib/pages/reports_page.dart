@@ -1,14 +1,12 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -25,6 +23,7 @@ class ReportsPageState extends State<ReportsPage> {
   XFile? _imageFile;
   bool _isUploading = false;
   String? _currentAddress;
+  String? _userId;
 
   final List<String> _departments = [
     'Police Department',
@@ -46,6 +45,19 @@ class ReportsPageState extends State<ReportsPage> {
     'High',
     'Critical',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userId = prefs.getString('user_id');
+    });
+  }
 
   Future<void> _takePhoto() async {
     final ImagePicker picker = ImagePicker();
@@ -109,9 +121,14 @@ class ReportsPageState extends State<ReportsPage> {
   }
 
   Future<void> _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate() ||
+        _userId == null ||
+        _selectedEmergency == null ||
+        _selectedSeverity == null ||
+        _selectedDepartment == null ||
+        _currentAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all the fields.')),
+        const SnackBar(content: Text('Please fill all the fields')),
       );
       return;
     }
@@ -121,36 +138,38 @@ class ReportsPageState extends State<ReportsPage> {
     });
 
     try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'http://192.168.56.1/Safesync_api/reporting/submit_report.php'),
-      );
+      var uri = Uri.parse(
+          'http://192.168.56.1/Safesync_api/reporting/submit_report.php');
+      var request = http.MultipartRequest('POST', uri);
 
-      request.fields['emergency'] = _selectedEmergency ?? '';
-      request.fields['severity'] = _selectedSeverity ?? '';
-      request.fields['department'] = _selectedDepartment ?? '';
-      request.fields['location'] = _currentAddress ?? '';
+      // Add text fields
+      request.fields['emergency'] = _selectedEmergency!;
+      request.fields['severity'] = _selectedSeverity!;
+      request.fields['department'] = _selectedDepartment!;
+      request.fields['location'] = _currentAddress!;
+      request.fields['user_id'] = _userId!;
 
+      // Add image if exists
       if (_imageFile != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            _imageFile!.path,
-          ),
+        var file = await http.MultipartFile.fromPath(
+          'image',
+          _imageFile!.path,
         );
+        request.files.add(file);
       }
 
-      final response = await request.send();
-      if (response.statusCode == 200) {
-        final responseData = await http.Response.fromStream(response);
-        final jsonResponse = json.decode(responseData.body);
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+      var result = json.decode(responseData);
 
+      if (!mounted) return;
+
+      if (result['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(jsonResponse['message'])),
+          SnackBar(content: Text(result['message'])),
         );
 
-        // Clear form fields
+        // Reset form
         setState(() {
           _selectedEmergency = null;
           _selectedSeverity = null;
@@ -160,12 +179,13 @@ class ReportsPageState extends State<ReportsPage> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit report.')),
+          SnackBar(content: Text(result['message'])),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Network error occurred.')),
+        const SnackBar(content: Text('Error submitting report')),
       );
     } finally {
       setState(() {
@@ -395,7 +415,7 @@ class ReportsPageState extends State<ReportsPage> {
               ),
             )
           : const Text(
-              'Submit Report',
+              'Submit',
               style: TextStyle(color: Colors.white),
             ),
     );

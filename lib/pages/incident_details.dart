@@ -52,8 +52,7 @@ class IncidentDetails extends StatelessWidget {
         CircleAvatar(
           radius: 20,
           backgroundColor: Colors.grey[300],
-          child:
-              const Icon(Icons.person, color: Colors.grey), // Placeholder icon
+          child: const Icon(Icons.person, color: Colors.grey),
         ),
         const SizedBox(width: 10),
         Column(
