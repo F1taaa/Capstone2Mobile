@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -77,6 +78,11 @@ class _IncidentsPageState extends State<IncidentsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Incidents'),
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: MediaQuery.of(context).size.width * 0.1,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
